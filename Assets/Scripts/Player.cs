@@ -2,23 +2,22 @@
 
 public class Player : MonoBehaviour
 {
-    public Joystick movementJoystick;  // ссылка на компонент джойстика
-    public float moveSpeed = 5f;
-    private CharacterController controller;
+    [SerializeField] private Joystick _movementJoystick;
+    [SerializeField] private float _moveSpeed = 5f;
 
-    void Start()
+    private CharacterController _characterController;
+
+    private void Start()
     {
-        controller = GetComponent<CharacterController>();
+        _characterController = GetComponent<CharacterController>();
     }
 
-    void Update()
+    private void Update()
     {
-        // Получаем вход с джойстика
-        float horizontal = movementJoystick.Horizontal();
-        float vertical = movementJoystick.Vertical();
-        Vector3 move = transform.right * horizontal + transform.forward * vertical;
+        float horizontalInput = _movementJoystick.Horizontal;
+        float verticalInput = _movementJoystick.Vertical;
+        Vector3 movementDirection = transform.right * horizontalInput + transform.forward * verticalInput;
 
-        controller.Move(move * moveSpeed * Time.deltaTime);
+        _characterController.Move(movementDirection * _moveSpeed * Time.deltaTime);
     }
-
 }

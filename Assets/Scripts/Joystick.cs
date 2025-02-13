@@ -3,55 +3,42 @@ using UnityEngine.EventSystems;
 
 public class Joystick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
 {
-    // Ссылки на RectTransform для фона и ручки джойстика
-    public RectTransform background;
-    public RectTransform handle;
+    [SerializeField] private RectTransform _background;
+    [SerializeField] private RectTransform _handle;
 
-    // Вектор ввода, нормализованный до длины 1 (если больше – нормализуем)
-    private Vector2 inputVector;
+    private Vector2 _inputVector;
 
-    // Обработка события касания (нажатия)
     public void OnPointerDown(PointerEventData eventData)
     {
         OnDrag(eventData);
     }
 
-    // Обработка перетаскивания
     public void OnDrag(PointerEventData eventData)
     {
-        Vector2 pos;
-        // Преобразуем позицию касания из экранных координат в локальные координаты фона
-        if(RectTransformUtility.ScreenPointToLocalPointInRectangle(background, eventData.position, eventData.pressEventCamera, out pos))
+        if(RectTransformUtility.ScreenPointToLocalPointInRectangle(_background, eventData.position, eventData.pressEventCamera, out Vector2 localPosition))
         {
-            // Нормализуем позицию в диапазоне от -1 до 1
-            pos.x = pos.x / background.sizeDelta.x;
-            pos.y = pos.y / background.sizeDelta.y;
+            localPosition.x /= _background.sizeDelta.x;
+            localPosition.y /= _background.sizeDelta.y;
 
-            inputVector = new Vector2(pos.x * 2, pos.y * 2);
-            // Если вектор ввода больше единицы, нормализуем его
-            inputVector = (inputVector.magnitude > 1.0f) ? inputVector.normalized : inputVector;
+            _inputVector = new Vector2(localPosition.x * 2f, localPosition.y * 2f);
+            if(_inputVector.magnitude > 1f)
+            {
+                _inputVector.Normalize();
+            }
 
-            // Перемещаем ручку джойстика: умножаем на часть размера фона для ограничения движения
-            handle.anchoredPosition = new Vector2(inputVector.x * (background.sizeDelta.x / 3),
-                                                    inputVector.y * (background.sizeDelta.y / 3));
+            _handle.anchoredPosition = new Vector2(
+                _inputVector.x * (_background.sizeDelta.x / 3f),
+                _inputVector.y * (_background.sizeDelta.y / 3f));
         }
     }
 
-    // Обработка отпускания касания
     public void OnPointerUp(PointerEventData eventData)
     {
-        inputVector = Vector2.zero;
-        handle.anchoredPosition = Vector2.zero;
+        _inputVector = Vector2.zero;
+        _handle.anchoredPosition = Vector2.zero;
     }
 
-    // Методы для получения горизонтального и вертикального ввода
-    public float Horizontal()
-    {
-        return inputVector.x;
-    }
+    public float Horizontal => _inputVector.x;
 
-    public float Vertical()
-    {
-        return inputVector.y;
-    }
+    public float Vertical => _inputVector.y;
 }

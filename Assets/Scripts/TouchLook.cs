@@ -1,53 +1,50 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class TouchLook : MonoBehaviour
 {
-    public float lookSpeed = 0.2f;
-    private Vector2 lastTouchPosition;
-    private bool isLooking = false;
+    [SerializeField] private float _lookSpeed = 0.2f;
+    [SerializeField] private Transform _playerBody;
+    [SerializeField] private RectTransform _allowedLookArea;
 
-    // Для горизонтального поворота игрока
-    public Transform playerBody;
+    private Vector2 _lastTouchPosition;
+    private bool _isLooking;
 
-    void Update()
+    private void Update()
     {
-        if(Input.touchCount > 0)
+        if(Input.touchCount <= 0)
         {
-            if(EventSystem.current.IsPointerOverGameObject())
-                return;
+            return;
+        }
 
-
-
-            foreach(Touch touch in Input.touches)
+        foreach(Touch touch in Input.touches)
+        {
+            if(_allowedLookArea != null && !RectTransformUtility.RectangleContainsScreenPoint(_allowedLookArea, touch.position, null))
             {
-                // Если касание над UI, пропускаем его
+                continue;
+            }
 
-                if(touch.phase == TouchPhase.Began)
-                {
-                    lastTouchPosition = touch.position;
-                    isLooking = true;
-                }
-                else if(touch.phase == TouchPhase.Moved && isLooking)
-                {
-                    Vector2 delta = touch.position - lastTouchPosition;
-                    lastTouchPosition = touch.position;
+            if(touch.phase == TouchPhase.Began)
+            {
+                _lastTouchPosition = touch.position;
+                _isLooking = true;
+            }
+            else if(touch.phase == TouchPhase.Moved && _isLooking)
+            {
+                Vector2 delta = touch.position - _lastTouchPosition;
+                _lastTouchPosition = touch.position;
 
-                    // Поворот игрока по горизонтали
-                    float horizontalRotation = delta.x * lookSpeed;
-                    playerBody.Rotate(0f, horizontalRotation, 0f);
+                float horizontalRotation = delta.x * _lookSpeed;
+                _playerBody.Rotate(0f, horizontalRotation, 0f);
 
-                    // Поворот камеры по вертикали (ограничим угол от -80 до 80 градусов)
-                    float verticalRotation = -delta.y * lookSpeed;
-                    float currentX = transform.localEulerAngles.x;
-                    currentX = (currentX > 180) ? currentX - 360 : currentX;
-                    float newX = Mathf.Clamp(currentX + verticalRotation, -80f, 80f);
-                    transform.localEulerAngles = new Vector3(newX, 0f, 0f);
-                }
-                else if(touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-                {
-                    isLooking = false;
-                }
+                float verticalRotation = -delta.y * _lookSpeed;
+                float currentX = transform.localEulerAngles.x;
+                currentX = (currentX > 180f) ? currentX - 360f : currentX;
+                float newX = Mathf.Clamp(currentX + verticalRotation, -80f, 80f);
+                transform.localEulerAngles = new Vector3(newX, 0f, 0f);
+            }
+            else if(touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+            {
+                _isLooking = false;
             }
         }
     }
